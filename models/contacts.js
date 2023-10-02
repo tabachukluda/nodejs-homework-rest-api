@@ -29,9 +29,12 @@ const getContactById = async contactId => {
 	}
 }
 
-const addContact = async (name, email, phone) => {
-    try {
-        
+const addContact = async body => {
+	try {
+		const { name, email, phone } = body
+		if (!name || !email || !phone) {
+			return null
+		}
 		const contacts = await listContacts()
 		const newContact = {
 			id: nanoid(),
@@ -62,7 +65,24 @@ const removeContact = async (contactId) => {
     }
 }
 
+const updateContact = async (contactId, body) => {
+	const contacts = await listContacts()
+	const contactToUpdate = contacts.find(contact => contact.id === contactId)
 
+	if (!contactToUpdate) {
+		return null
+	}
+	const otherContacts = contacts.filter(contact => contact.id !== contactId)
+
+	const updatedContact = {
+		...contactToUpdate,
+		...body,
+	}
+
+	const contactsToSave = [...otherContacts, updatedContact]
+	await fs.writeFile(contactsPath, JSON.stringify(contactsToSave, null, 2), { encoding: 'utf-8' })
+	return updatedContact
+}
 listContacts()
 
 module.exports = {
@@ -70,4 +90,5 @@ module.exports = {
 	getContactById,
 	removeContact,
 	addContact,
+	updateContact,
 }

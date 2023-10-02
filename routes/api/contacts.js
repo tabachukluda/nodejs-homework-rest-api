@@ -9,14 +9,14 @@ const {
 } = require("../../models/contacts.js")
 
 
-const { contactSchema } = require('../../utils/validator.js')
+const { contactSchema } = require('../../schemas/validator.js')
 
 const router = express.Router()
 
 router.get('/', async (req, res, next) => {
 	try {
     const contacts = await listContacts();
-    res.status(200).json({ contacts });
+    res.status(200).json(contacts);
   } catch (err) {
     next(err);
   }
@@ -28,7 +28,7 @@ router.get('/:contactId', async (req, res, next) => {
     if (!contact) {
       return res.status(404).json({ message: "Not found" });
     }
-    res.status(200).json({ contact });
+    res.status(200).json(contact);
   } catch (err) {
     next(err);
   }
@@ -38,10 +38,11 @@ router.post('/', async (req, res, next) => {
   try {
     const { error } = contactSchema.validate(req.body);
     if (error) {
-      return res.status(400).json({ message: "missing required name field" });
+      const fieldName = error.details[0].context.key;
+      return res.status(400).json({ message: `missing required ${fieldName} field` });
     }
     const contact = await addContact(req.body);
-    return res.status(201).json({ contact });
+    return res.status(201).json(contact);
   } catch (err) {
     next(err);
   }
