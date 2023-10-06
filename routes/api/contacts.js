@@ -41,6 +41,12 @@ router.post('/', async (req, res, next) => {
       const fieldName = error.details[0].context.key;
       return res.status(400).json({ message: `missing required ${fieldName} field` });
     }
+    const phoneNumber = req.body.phone; 
+    const phoneNumberAsNumber = parseInt(phoneNumber, 10); 
+
+    if (phoneNumberAsNumber <= 0) {
+      return res.status(400).json({ message: 'Phone number must be greater than 0' });
+    }
     const contact = await addContact(req.body);
     return res.status(201).json(contact);
   } catch (err) {
