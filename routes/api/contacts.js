@@ -36,13 +36,19 @@ router.get('/:contactId', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
+      if (!req.body) {
+      return res.status(400).json({ message: 'missing field' });
+    }
+
     const { error } = contactSchema.validate(req.body);
+    
     if (error) {
-      const fieldName = error.details[0].context.key; 
+      const fieldName = error.details[0].context.key;
       return res.status(400).json({ message: `Missing required ${fieldName} field` });
     }
 
     const contact = await addContact(req.body);
+    
     if (contact) {
       res.status(201).json(contact);
     } else {
@@ -66,6 +72,10 @@ router.delete('/:contactId', async (req, res, next) => {
 
 router.put("/:contactId", async (req, res, next) => {
   try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ message: 'missing field' });
+    }
+
     const { error } = contactSchema.validate(req.body);
 
     if (error) {
@@ -91,7 +101,6 @@ router.put("/:contactId", async (req, res, next) => {
     next(error);
   }
 });
-
 
 
 module.exports = router
