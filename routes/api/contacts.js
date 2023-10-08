@@ -39,12 +39,12 @@ router.post('/', async (req, res, next) => {
     const { error } = contactSchema.validate(req.body);
     if (error) {
       const fieldName = error.details[0].context.key; 
-      return res.status(400).json({ message: `Missing required field: ${fieldName}` });
+      return res.status(400).json({ message: `Missing required ${fieldName} field` });
     }
 
     const contact = await addContact(req.body);
     if (contact) {
-      res.status(200).json(contact);
+      res.status(201).json(contact);
     } else {
       res.status(400).json({ message: 'missing required field' });
     }
@@ -67,18 +67,26 @@ router.delete('/:contactId', async (req, res, next) => {
 router.put("/:contactId", async (req, res, next) => {
   try {
     const { error } = contactSchema.validate(req.body);
-    if (error) return res.status(400).json({ message: error.details[0].message })
-	const { name, email, phone } = req.body
-	const { contactId } = req.params
-	if (!name && !email && !phone) {
-		res.status(400).json({ message: 'missing fields' })
-	}
-	const contact = await updateContact(contactId, req.body)
-	if (contact) {
-		res.status(200).json(contact)
-	} else {
-		res.status(404).json({ message: 'Not found' })
-	}
+
+    if (error) {
+      const missingField = error.details[0].context.key;
+      return res.status(400).json({ message: `missing ${missingField} field` });
+    }
+
+    const { name, email, phone } = req.body;
+    const { contactId } = req.params;
+
+    if (!name && !email && !phone) {
+      return res.status(400).json({ message: 'missing fields' });
+    }
+
+    const contact = await updateContact(contactId, req.body);
+
+    if (contact) {
+      res.status(200).json(contact);
+    } else {
+      res.status(404).json({ message: 'Not found' });
+    }
   } catch (error) {
     next(error);
   }
