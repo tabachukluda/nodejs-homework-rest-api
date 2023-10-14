@@ -4,6 +4,14 @@ const { contactSchema, updateStatusValidation } = require('../schemas/validator.
 
 const ctrlWrapper = require('../decorators/ctrlWrapper.js');
 
+const validateId = (req, res, next) => {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid ID' });
+    }
+    next();
+};
+
 const getAll = async (req, res) => {
     const contacts = await Contact.find();
     res.status(200).json(contacts);
