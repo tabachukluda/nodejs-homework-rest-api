@@ -4,33 +4,41 @@ const { contactSchema, updateStatusValidation } = require('../schemas/validator.
 
 const ctrlWrapper = require('../decorators/ctrlWrapper.js');
 
-const validateId = (req, res, next) => {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: 'Invalid ID' });
+const getAll = async (req, res) => {
+    const { _id: owner } = req.user;
+    const { page = 1, limit = 20, favorite } = req.query;
+    const skip = page * limit - limit;
+    const contacts = await Contact.find({ owner }).skip(skip).limit(limit);
+
+    if (!favorite) {
+    res.status(200).json({ contacts });
+    } else {
+    const favoriteContacts = contacts.filter(
+        (contact) => contact.favorite === true
+    );
+    res.status(200).json({ favoriteContacts });
     }
-    next();
 };
 
-const getAll = async (req, res) => {
-    const contacts = await Contact.find();
-    res.status(200).json(contacts);
-    }
 
 
 const getById = async (req, res) => {
-    const { contactId } = req.params;
     try {
-        const contact = await Contact.findById(contactId);
+        const { contactId } = req.params;
+        const { _id: owner } = req.user;
+
+        const contact = await Contact.findOne({ _id: contactId, owner });
+
         if (contact) {
             res.status(200).json(contact);
         } else {
-            res.status(404).json({ message: 'Not found' });
+            res.status(404).json({ message: 'Contact not found' });
         }
     } catch (error) {
-        res.status(404).json({ message: 'Not found' });
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
-}
+};
 
 
 const add = async (req, res, next) => {
@@ -44,7 +52,8 @@ const add = async (req, res, next) => {
         const fieldName = error.details[0].context.key;
         return res.status(400).json({ message: `Missing required ${fieldName} field` });
     }
-
+    
+    
     const { name, email, phone, favorite } = req.body;
 
     const newContact = {
@@ -54,7 +63,9 @@ const add = async (req, res, next) => {
         favorite: favorite !== undefined ? favorite : false, 
     };
 
-    const contact = await Contact.create(newContact);
+    const { _id: owner } = req.user;
+
+    const contact = await Contact.create({ ...newContact, owner });
 
     if (contact) {
         res.status(201).json(contact);
@@ -65,8 +76,12 @@ const add = async (req, res, next) => {
 
 
 const deleteContact = async (req, res) => {
+    const { _id: owner } = req.user;
     const { contactId } = req.params
-    const contact = await Contact.findByIdAndRemove(contactId);
+    const contact = await Contact.findOneAndRemove({
+    _id: contactId,
+    owner,
+    });
     if (contact) {
         res.status(200).json({ message: 'contact deleted' })
     } else {
@@ -85,10 +100,10 @@ const updateContact = async (req, res) => {
 
         if (!name && !email && !phone) {
             return res.status(400).json({ message: `Missing required ${fieldName} field` });
-        }
-
-        const contact = await Contact.findByIdAndUpdate(
-            contactId,
+        }        
+        const { _id: owner } = req.user;
+        const contact = await Contact.findOneAndUpdate(
+            { owner, _id: contactId },
             { $set: { name, email, phone } },
             { new: true } 
         );
@@ -115,9 +130,10 @@ const setFavorite = async (req, res, next) => {
 		if (!favorite && favorite !== false) {
             return res.status(400).json({ message: `Missing required ${fieldName} field` });
         }
-
-        const contact = await Contact.findByIdAndUpdate(
-        contactId,
+        
+        const { _id: owner } = req.user;
+        const contact = await Contact.findOneAndUpdate(
+        { owner, _id: contactId },
         { favorite },
         { new: true }
         );

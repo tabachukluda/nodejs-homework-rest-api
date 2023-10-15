@@ -4,7 +4,11 @@ const contactController = require('../../controllers/contactsControllers.js')
 
 const validateId = require('../../middlewares/isValidateId.js')
 
+const authenticate = require('../../middlewares/authenticate.js')
+
 const router = express.Router()
+
+router.use(authenticate);
 
 router.get('/', contactController.getAll)
 

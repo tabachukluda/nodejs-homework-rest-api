@@ -1,4 +1,6 @@
-const {Schema, model} = require('mongoose');
+const { Schema, model } = require('mongoose');
+
+const { handleSaveError, runValidatorsAtUpdate } = require ('./hooks.js')
 
 const contactSchema = new Schema(
     {
@@ -16,8 +18,18 @@ const contactSchema = new Schema(
 			type: Boolean,
 			default: false,
 		},
-	}
-)
+		owner: {
+        type: Schema.Types.ObjectId,
+		ref: 'user',
+		
+        }
+	}, {versionKey: false, timestamps: true})
+
+contactSchema.post("save", handleSaveError);
+
+contactSchema.pre("findOneAndUpdate", runValidatorsAtUpdate);
+
+contactSchema.post("findOneAndUpdate", handleSaveError);
 
 const Contact = model('contact', contactSchema);
 
