@@ -11,12 +11,12 @@ const getAll = async (req, res) => {
     const contacts = await Contact.find({ owner }).skip(skip).limit(limit);
 
     if (!favorite) {
-    res.status(200).json({ contacts });
+    res.status(200).json(contacts);
     } else {
     const favoriteContacts = contacts.filter(
         (contact) => contact.favorite === true
     );
-    res.status(200).json({ favoriteContacts });
+    res.status(200).json( favoriteContacts );
     }
 };
 

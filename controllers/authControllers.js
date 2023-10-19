@@ -24,23 +24,16 @@ const register = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (user) {
-        return res.status(409).json({
-            status: 'error',
-            code: 409,
-            message: 'Email is already in use',
-            data: 'Conflict',
-        });
+        return res.status(409).json({ message: 'Email is in use' });
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({ ...req.body, password: hashPassword });
 
-    res.status(201).json({
-        username: newUser.username,
-        email: newUser.email,
-    });
+    res.status(201).json({ user: { email: newUser.email, subscription: newUser.subscription } });
 }
+
 
 
 const login = async (req, res) => {
@@ -71,9 +64,8 @@ const login = async (req, res) => {
     const token = jwt.sign(payload, JWT_SECRET, {expiresIn: "23h"});
     await User.findByIdAndUpdate(user._id, {token});
     
-    return res.status(200).json({
-    token: token,
-    user: {
+    return res.status(201).json({
+        user: {
         email: user.email,
         subscription: user.subscription,
     },
