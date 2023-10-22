@@ -4,7 +4,7 @@ const authController = require('../../controllers/authControllers.js')
 
 const authenticate = require('../../middlewares/authenticate.js')
 
-const {upload} = require('../../middlewares/uploadAvatar.js')
+const { upload }  = require('../../middlewares/uploadAvatar.js')
 
 const usersRouter = express.Router();
 
