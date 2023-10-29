@@ -23,9 +23,14 @@ const userSigninSchema = Joi.object({
     password: Joi.string().min(6).required(),
 })
 
+const userEmailSchema = Joi.object({
+    email: Joi.string().pattern(emailRegexp).required(),
+})
+
 module.exports = {
     contactSchema,
     updateStatusValidation,
     userSignupSchema,
     userSigninSchema,
+    userEmailSchema,
 };

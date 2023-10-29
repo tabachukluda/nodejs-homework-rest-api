@@ -8,7 +8,11 @@ const { upload }  = require('../../middlewares/uploadAvatar.js')
 
 const usersRouter = express.Router();
 
-usersRouter.post("/register",  authController.register);
+usersRouter.post("/register", authController.register);
+
+usersRouter.get("/verify/:verificationToken", authController.verify);
+
+usersRouter.post("/verify", authController.resendVerifyEmail);
 
 usersRouter.post("/login", authController.login);
 
